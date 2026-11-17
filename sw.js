@@ -1,5 +1,5 @@
 // Flex : l'app s'ouvre même sans réseau ; les données passent toujours par Supabase.
-const CACHE = "flex-v1";
+const CACHE = "flex-v2";
 const SHELL = ["./", "index.html", "config.js", "manifest.webmanifest", "img/flex-logo.png",
   "img/etherea.jpg", "img/d06.jpg", "img/adc.jpg", "img/ran.jpg", "icons/icon-192.png"];
 
