@@ -222,6 +222,42 @@ a.btn{display:flex;align-items:center;justify-content:center;gap:8px;text-decora
 .badge{position:absolute;top:5px;left:calc(50% + 5px);min-width:18px;height:18px;border-radius:9px;background:var(--rose);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px #fff}
 .badge[hidden]{display:none}
 
+
+/* Responsive */
+.count{white-space:nowrap}
+.kpi{display:flex;flex-direction:column;justify-content:flex-start;gap:2px}
+@media (max-width:359px){
+  .app{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  .head h1{font-size:27px}
+  .count{font-size:40px}
+  .kpis{gap:8px}.kpi{padding:12px}.kpi b{font-size:23px}.kpi span{font-size:12px}
+  .card{padding:16px}.card.flush{padding:4px 16px}
+  .tab{font-size:10px}
+  .offers,.month{grid-template-columns:1fr}
+}
+@media (min-width:600px){
+  .app{max-width:640px}
+}
+@media (min-width:960px){
+  .app{max-width:1080px;padding-left:32px;padding-right:32px}
+  .head{margin:28px 2px 22px}.head h1{font-size:36px}
+  .view{display:grid;gap:16px;align-items:start}
+  [data-view="accueil"]{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  [data-view="accueil"]>*{grid-column:2}
+  [data-view="accueil"]>.ribbon-card,[data-view="accueil"]>.todo-card{grid-column:1}
+  [data-view="accueil"]>.ribbon-card{grid-row:1}
+  [data-view="accueil"]>.kpis{grid-row:1}
+  [data-view="accueil"]>.todo-card{grid-row:2/span 3}
+  [data-view="crm"]{max-width:760px}
+  [data-view="demande"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto 1fr}
+  [data-view="demande"]>#dform{grid-row:1/span 2}
+  [data-view="demande"]>.sec{margin-top:0}
+  [data-view="marques"],[data-view="equipe"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  [data-view="equipe"]>.note-card,[data-view="equipe"]>#logout{grid-column:1/-1}
+  .sheet{border-radius:28px;margin-bottom:24px;max-width:520px}
+  .scrim{align-items:center}
+}
+
 /* Barre d'onglets */
 nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:min(444px,calc(100% - 28px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));background:rgba(255,255,255,.82);backdrop-filter:blur(18px) saturate(1.6);-webkit-backdrop-filter:blur(18px) saturate(1.6);border-radius:26px;padding:6px;box-shadow:var(--shadow-lift)}
 .tabs-in{display:grid;grid-template-columns:repeat(5,1fr);position:relative}
@@ -276,7 +312,7 @@ nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0
       <button class="kpi" data-go="demande"><b id="k-dem">0</b><span>Demandes en cours</span></button>
       <button class="kpi" data-go="crm" data-filter="client"><b id="k-cli">0</b><span>Syndics clients</span></button>
     </div>
-    <div class="card">
+    <div class="card todo-card">
       <p class="t">Aujourd'hui</p>
       <div id="todo" style="margin-top:4px"></div>
     </div>
@@ -627,7 +663,7 @@ nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0
     S.q("#s-r").addEventListener("change",paintCal);S.q("#s-l").addEventListener("change",paintCal);paintCal();
     S.q("#s-ok").addEventListener("click",async e=>{
       const btn=e.currentTarget;let st=S.picked("#s-st")||c.statut;const rdv=S.q("#s-r").value,txt=S.q("#s-n").value.trim();
-      if(rdv&&(st==="a_contacter"||st==="contacte"))st="rdv";
+      if(rdv&&rdv!==rdvVal&&["a_contacter","contacte","relance"].includes(st))st="rdv";
       const now=new Date().toISOString(),journal=[...(c.journal||[])];
       if(st!==c.statut)journal.push({d:now,t:"Statut : "+ST[st]});
       if(rdv&&rdv!==rdvVal)journal.push({d:now,t:"RDV fixé le "+new Date(rdv).toLocaleString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})});
