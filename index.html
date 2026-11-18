@@ -30,7 +30,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;height:100%}
+html{touch-action:manipulation;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;height:100%}
 body{background:var(--canvas);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;min-height:100%;overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--canvas);z-index:40}
 .glow{position:fixed;border-radius:50%;filter:blur(60px);pointer-events:none;z-index:0}
@@ -202,7 +202,7 @@ button{cursor:pointer}
 .link{border:0;background:none;color:var(--indigo);font-weight:600;font-size:13.5px;padding:6px 0}
 
 .notice{background:#fff7e6;border-radius:var(--r-md);padding:12px 14px;font-size:14px;color:#6b4400}
-.toast{position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:80;max-width:calc(100% - 40px);text-align:center;box-shadow:0 10px 30px rgba(28,11,59,.25)}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:calc(98px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;z-index:80;max-width:calc(100% - 40px);text-align:center;box-shadow:0 10px 30px rgba(28,11,59,.25)}
 
 /* Ajouts : création, actions rapides, journal, mois */
 .crm-top{display:flex;gap:8px}
@@ -494,6 +494,7 @@ nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0
   const M=window.Motion||null;
   const calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
   const anim=(el,kf,o)=>{if(!M||calm||!el)return null;try{return M.animate(el,kf,o)}catch(e){return null}};
+  const after=(a,ms)=>new Promise(res=>{let d=false;const go=()=>{if(!d){d=true;res()}};setTimeout(go,ms+120);if(a&&typeof a.then==="function")a.then(go,go);else go()});
   const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
   const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const pad=n=>String(n).padStart(2,"0");
@@ -502,9 +503,9 @@ nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0
   const fmtD=s=>{if(!s)return"";const d=new Date(s.length>10?s:s+"T12:00");return d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"})};
 
   /* Toast */
-  let tt;function toast(m){let t=$(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}
+  let tt,tn=0;function toast(m){let t=$(".toast");if(!t){t=document.createElement("div");t.className="toast";t.setAttribute("role","status");document.body.appendChild(t)}
     t.textContent=m;t.hidden=false;anim(t,{opacity:[0,1],y:[12,0],filter:["blur(4px)","blur(0px)"]},{duration:.3,easing:[.2,0,0,1]});
-    clearTimeout(tt);tt=setTimeout(()=>{const a=anim(t,{opacity:0,y:-12},{duration:.15});a?a.finished.then(()=>t.hidden=true):t.hidden=true},2100)}
+    clearTimeout(tt);const id=++tn;tt=setTimeout(()=>{const a=anim(t,{opacity:0,y:-12},{duration:.15});after(a,150).then(()=>{if(id===tn)t.hidden=true})},2100)}
   async function copy(v,msg){try{await navigator.clipboard.writeText(v);toast(msg||"Copié")}catch(e){toast("Copie bloquée ici : sélectionne le texte à la main")}}
 
   const ST={a_contacter:"À contacter",contacte:"Contacté",rdv:"RDV pris",relance:"À relancer",client:"Client",perdu:"Perdu"};
@@ -595,7 +596,7 @@ nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0
     anim(sheet,{y:["100%","0%"]},{type:"spring",bounce:0,duration:.4});
     let closing=false;
     const close=()=>{if(closing)return;closing=true;const a=anim(sheet,{y:"100%"},{duration:.18,easing:"ease-in"});anim(bg,{opacity:0},{duration:.18});
-      (a?a.finished:Promise.resolve()).then(()=>{bg.remove();prev&&prev.focus&&prev.focus({preventScroll:true})})};
+      bg.style.pointerEvents="none";after(a,180).then(()=>{bg.remove();prev&&prev.focus&&prev.focus({preventScroll:true})})};
     bg.addEventListener("click",e=>{if(e.target===bg)close()});
     bg.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
     bg.querySelector("[data-close]")?.addEventListener("click",close);
@@ -814,7 +815,7 @@ nav.tabs{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0
         const {error}=await sb.auth.signInWithPassword({email:$("#l-mail").value.trim(),password:$("#l-pw").value});
         b.disabled=false;b.textContent="Se connecter";
         if(error){$("#l-err").textContent=/invalid/i.test(error.message)?"Mail ou mot de passe incorrect.":"Connexion impossible. Vérifie ta connexion internet.";return}
-        const L=$("#login");const a=anim(L,{opacity:0,y:-12},{duration:.2});(a?a.finished:Promise.resolve()).then(()=>{L.hidden=true;L.style.opacity="";L.style.transform=""});res();
+        const L=$("#login");L.style.pointerEvents="none";const a=anim(L,{opacity:0,y:-12},{duration:.2});after(a,200).then(()=>{L.hidden=true;L.style.opacity="";L.style.transform="";L.style.pointerEvents=""});res();
       });
     });
   }
